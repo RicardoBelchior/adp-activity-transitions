@@ -1,10 +1,10 @@
-package com.list_detail_transition.support;
+package com.rbelchior.list_detail_transition.support;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
 
-import com.mirror.news.ui.view.list_detail_transition.DetailFragmentTransitionPresenter;
+import com.rbelchior.list_detail_transition.DetailFragmentTransitionPresenter;
 import com.squareup.picasso.RequestCreator;
 
 /**

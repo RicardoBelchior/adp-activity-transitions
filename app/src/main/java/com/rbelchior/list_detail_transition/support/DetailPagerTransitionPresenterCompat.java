@@ -1,10 +1,10 @@
-package com.list_detail_transition.support;
+package com.rbelchior.list_detail_transition.support;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
-import com.mirror.news.ui.view.list_detail_transition.DetailPagerTransitionPresenter;
+import com.rbelchior.list_detail_transition.DetailPagerTransitionPresenter;
 
 /**
  * Shallow implementation of {@link DetailPagerTransitionPresenter} for SDK < Lollipop.

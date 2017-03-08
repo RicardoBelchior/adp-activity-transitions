@@ -1,4 +1,4 @@
-package com.list_detail_transition;
+package com.rbelchior.list_detail_transition;
 
 import android.app.Fragment;
 import android.app.FragmentManager;

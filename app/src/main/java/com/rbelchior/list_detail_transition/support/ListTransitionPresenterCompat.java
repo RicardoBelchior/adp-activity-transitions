@@ -1,9 +1,10 @@
-package com.list_detail_transition.support;
+package com.rbelchior.list_detail_transition.support;
 
 import android.content.Intent;
 import android.view.View;
 
-import com.mirror.news.ui.view.list_detail_transition.ListTransitionPresenter;
+import com.rbelchior.list_detail_transition.ListTransitionPresenter;
+
 
 /**
  * Shallow implementation of {@link ListTransitionPresenter} for SDK < Lollipop.

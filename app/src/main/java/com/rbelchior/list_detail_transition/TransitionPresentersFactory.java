@@ -1,10 +1,11 @@
-package com.list_detail_transition;
+package com.rbelchior.list_detail_transition;
 
 import android.os.Build;
 
-import com.mirror.news.ui.view.list_detail_transition.support.DetailFragmentTransitionPresenterCompat;
-import com.mirror.news.ui.view.list_detail_transition.support.DetailPagerTransitionPresenterCompat;
-import com.mirror.news.ui.view.list_detail_transition.support.ListTransitionPresenterCompat;
+import com.rbelchior.list_detail_transition.support.DetailFragmentTransitionPresenterCompat;
+import com.rbelchior.list_detail_transition.support.DetailPagerTransitionPresenterCompat;
+import com.rbelchior.list_detail_transition.support.ListTransitionPresenterCompat;
+
 
 /**
  * Created by ricardobelchior on 31/01/2017.
