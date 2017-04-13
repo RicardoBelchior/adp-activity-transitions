@@ -5,7 +5,13 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.transition.ChangeBounds;
+import android.transition.ChangeClipBounds;
+import android.transition.ChangeImageTransform;
+import android.transition.ChangeTransform;
 import android.transition.Transition;
+import android.transition.TransitionSet;
+import android.transition.Visibility;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +76,7 @@ public class DetailsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_details, container, false);
 
         mAlbumImage = (ImageView) rootView.findViewById(R.id.details_album_image);
+        final ImageView icon = (ImageView) rootView.findViewById(R.id.icon);
         final ImageView backgroundImage = (ImageView) rootView.findViewById(R.id.details_background_image);
 
         View textContainer = rootView.findViewById(R.id.details_text_container);
@@ -81,6 +88,7 @@ public class DetailsFragment extends Fragment {
 
         albumTitleText.setText(albumName);
         mAlbumImage.setTransitionName(albumName);
+        icon.setTransitionName("icon:" + albumName);
 
         RequestCreator albumImageRequest = Picasso.with(getActivity()).load(albumImageUrl);
         RequestCreator backgroundImageRequest = Picasso.with(getActivity()).load(backgroundImageUrl).fit().centerCrop();
@@ -89,10 +97,13 @@ public class DetailsFragment extends Fragment {
             albumImageRequest.noFade();
             backgroundImageRequest.noFade();
             backgroundImage.setAlpha(0f);
+            icon.setAlpha(0.0f);
             getActivity().getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
                 @Override
                 public void onTransitionEnd(Transition transition) {
                     backgroundImage.animate().setDuration(mBackgroundImageFadeMillis).alpha(1f);
+
+                    //icon.animate().alpha(1.0f); // we can this as after transition effect, or the 'CustomFade' transition
                 }
             });
         }
@@ -100,7 +111,56 @@ public class DetailsFragment extends Fragment {
         albumImageRequest.into(mAlbumImage, mImageCallback);
         backgroundImageRequest.into(backgroundImage);
 
+
+        getActivity().getWindow()
+                .setSharedElementReturnTransition(
+                        createTransition(
+                                createIconTransition(Visibility.MODE_OUT),
+                                createSharedImageTransition()));
+
+
+        getActivity().getWindow()
+                .setSharedElementEnterTransition(
+                        createTransition(
+                                createIconTransition(Visibility.MODE_IN),
+                                createSharedImageTransition())
+                );
+
         return rootView;
+    }
+
+    @NonNull
+    private TransitionSet createTransition(Transition transitionIcon, TransitionSet transitionReturn1) {
+        TransitionSet transitionReturn = new TransitionSet();
+        transitionReturn.addTransition(transitionReturn1);
+        transitionReturn.addTransition(transitionIcon);
+        transitionReturn.addTarget(R.id.icon);
+        transitionReturn.addTarget(R.id.details_album_image);
+        transitionReturn.addTarget(R.id.main_card_album_image);
+        return transitionReturn;
+    }
+
+    @NonNull
+    private Transition createIconTransition(int fadeMode) {
+        Transition transitionIcon = new CustomFade(fadeMode);
+        transitionIcon.addTarget(R.id.icon);
+        transitionIcon.excludeTarget(R.id.details_album_image, true);
+        transitionIcon.excludeTarget(R.id.main_card_album_image, true);
+        return transitionIcon;
+    }
+
+    @NonNull
+    private TransitionSet createSharedImageTransition() {
+        TransitionSet transitionReturn1 = new TransitionSet();
+        transitionReturn1.addTransition(new ChangeBounds());
+        transitionReturn1.addTransition(new ChangeTransform());
+        transitionReturn1.addTransition(new ChangeClipBounds());
+        transitionReturn1.addTransition(new ChangeImageTransform());
+        transitionReturn1.addTarget(mAlbumImage);
+        transitionReturn1.addTarget(R.id.details_album_image);
+        transitionReturn1.addTarget(R.id.main_card_album_image);
+        transitionReturn1.excludeTarget(R.id.icon, true);
+        return transitionReturn1;
     }
 
     private void startPostponedEnterTransition() {

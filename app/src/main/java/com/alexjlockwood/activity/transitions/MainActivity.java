@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.Transition;
+import android.transition.Visibility;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +52,10 @@ public class MainActivity extends Activity {
                         names.add(newTransitionName);
                         sharedElements.clear();
                         sharedElements.put(newTransitionName, newSharedElement);
+
+//                        ImageView icon = (ImageView) ((FrameLayout) newSharedElement.getParent()).getChildAt(1);
+//                        names.add("icon:"+newSharedElement.getTransitionName());
+//                        sharedElements.put("icon:"+newSharedElement.getTransitionName(), icon);
                     }
                 }
 
@@ -134,12 +141,14 @@ public class MainActivity extends Activity {
 
     private class CardHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private final ImageView mAlbumImage;
+        private final ImageView icon;
         private int mAlbumPosition;
 
         public CardHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             mAlbumImage = (ImageView) itemView.findViewById(R.id.main_card_album_image);
+            icon = (ImageView) itemView.findViewById(R.id.icon);
         }
 
         public void bind(int position) {
@@ -147,6 +156,8 @@ public class MainActivity extends Activity {
             mAlbumImage.setTransitionName(ALBUM_NAMES[position]);
             mAlbumImage.setTag(ALBUM_NAMES[position]);
             mAlbumPosition = position;
+
+            icon.setTransitionName("icon:"+ALBUM_NAMES[position]);
         }
 
         @Override
@@ -155,10 +166,22 @@ public class MainActivity extends Activity {
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
             intent.putExtra(EXTRA_STARTING_ALBUM_POSITION, mAlbumPosition);
 
+            final Transition transitionExit = new CustomFade(Visibility.MODE_OUT);
+            getWindow().setSharedElementExitTransition(transitionExit);
+
+            final Transition transitionReenter = new IconFadeTransition3(Visibility.MODE_IN);
+            getWindow().setSharedElementReenterTransition(transitionReenter);
+
+            transitionExit.addTarget(icon);
+            transitionReenter.addTarget(icon);
+
             if (!mIsDetailsActivityStarted) {
                 mIsDetailsActivityStarted = true;
-                startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        mAlbumImage, mAlbumImage.getTransitionName()).toBundle());
+                startActivity(intent,
+                        ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                                new Pair<View, String>(mAlbumImage, mAlbumImage.getTransitionName()),
+                                new Pair<View, String>(icon, icon.getTransitionName())
+                        ).toBundle());
             }
         }
     }

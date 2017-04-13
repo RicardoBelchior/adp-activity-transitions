@@ -45,6 +45,10 @@ public class DetailsActivity extends Activity {
                     names.add(sharedElement.getTransitionName());
                     sharedElements.clear();
                     sharedElements.put(sharedElement.getTransitionName(), sharedElement);
+
+//                    ImageView icon = (ImageView) ((FrameLayout) sharedElement.getParent()).getChildAt(2);
+//                    names.add("icon:"+sharedElement.getTransitionName());
+//                    sharedElements.put("icon:"+sharedElement.getTransitionName(), icon);
                 }
             }
         }
