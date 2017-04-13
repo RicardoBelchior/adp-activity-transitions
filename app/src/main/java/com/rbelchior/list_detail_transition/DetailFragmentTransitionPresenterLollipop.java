@@ -125,7 +125,7 @@ class DetailFragmentTransitionPresenterLollipop implements DetailFragmentTransit
 
 
     private class ImageLoadingTimeout {
-        static final long TIMEOUT_IMAGE_LOADING_MILLI = 2000;
+        static final long TIMEOUT_IMAGE_LOADING_MILLI = 300;
 
 
         Handler handler;

@@ -30,7 +30,7 @@ public class ListTransitionPresenterCompat implements ListTransitionPresenter {
     }
 
     @Override
-    public void startDetail(Intent intent, View imageView, int itemPosition) {
+    public void startDetail(Intent intent, int itemPosition, View... sharedViews) {
         view.getActivity().startActivity(intent);
     }
 }

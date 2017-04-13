@@ -14,7 +14,7 @@ import com.rbelchior.list_detail_transition.support.ListTransitionPresenterCompa
 public class TransitionPresentersFactory {
 
     public static DetailPagerTransitionPresenter create(DetailPagerTransitionPresenter.DetailPagerTransitionView view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (isTransitionsSupported()) {
             return new DetailPagerTransitionPresenterLollipop(view);
         } else {
             return new DetailPagerTransitionPresenterCompat();
@@ -22,7 +22,7 @@ public class TransitionPresentersFactory {
     }
 
     public static DetailFragmentTransitionPresenter create(DetailFragmentTransitionPresenter.DetailFragmentTransitionView view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (isTransitionsSupported()) {
             return new DetailFragmentTransitionPresenterLollipop(view);
         } else {
             return new DetailFragmentTransitionPresenterCompat();
@@ -30,11 +30,15 @@ public class TransitionPresentersFactory {
     }
 
     public static ListTransitionPresenter create(ListTransitionPresenter.ListTransitionView view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (isTransitionsSupported()) {
             return new ListTransitionPresenterLollipop(view);
         } else {
             return new ListTransitionPresenterCompat(view);
         }
+    }
+
+    private static boolean isTransitionsSupported() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
 }

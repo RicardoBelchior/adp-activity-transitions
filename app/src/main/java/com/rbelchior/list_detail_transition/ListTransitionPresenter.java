@@ -48,6 +48,6 @@ public interface ListTransitionPresenter {
 
     void reenterActivity(int resultCode, Intent data);
 
-    void startDetail(Intent intent, View imageView, int itemPosition);
+    void startDetail(Intent intent, int itemPosition, View... sharedViews);
 
 }

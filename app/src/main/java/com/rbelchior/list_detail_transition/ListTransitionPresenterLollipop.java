@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,19 +62,27 @@ class ListTransitionPresenterLollipop implements ListTransitionPresenter {
     }
 
     @Override
-    public void startDetail(Intent intent, View imageView, int itemPosition) {
+    public void startDetail(Intent intent, int itemPosition, View... sharedViews) {
 
         intent.putExtra(EXTRA_STARTING_ITEM_POSITION, itemPosition);
 
         if (!isDetailsActivityStarted) {
             isDetailsActivityStarted = true;
             final Activity activity = view.getActivity();
+            final List<Pair> sharedElements = new ArrayList<>();
+
+            if (sharedViews != null && sharedViews.length > 0) {
+                for (View view : sharedViews) {
+                    if (view != null && view.getTransitionName() != null && view.getVisibility() == View.VISIBLE) {
+                        sharedElements.add(
+                                new Pair<>(view, view.getTransitionName()));
+                    }
+                }
+            }
+
             activity.startActivity(intent,
                     ActivityOptions.makeSceneTransitionAnimation(
-                            activity,
-                            imageView,
-                            imageView.getTransitionName()
-                    ).toBundle());
+                            activity, sharedElements.toArray(new Pair[sharedElements.size()])).toBundle());
         }
     }
 
