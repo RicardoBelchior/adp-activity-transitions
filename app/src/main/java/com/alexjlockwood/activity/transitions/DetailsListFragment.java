@@ -3,25 +3,21 @@ package com.alexjlockwood.activity.transitions;
 import android.app.Fragment;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.transition.Transition;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
-
-import static com.alexjlockwood.activity.transitions.Constants.ALBUM_IMAGE_URLS;
-import static com.alexjlockwood.activity.transitions.Constants.ALBUM_NAMES;
-import static com.alexjlockwood.activity.transitions.Constants.BACKGROUND_IMAGE_URLS;
+import tv.teads.sdk.adContainer.adapter.TeadsNotify;
+import tv.teads.sdk.publisher.TeadsAd;
 
 
 public class DetailsListFragment extends Fragment {
@@ -31,23 +27,17 @@ public class DetailsListFragment extends Fragment {
     private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
     private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
 
-    private final Callback mImageCallback = new Callback() {
-        @Override
-        public void onSuccess() {
-            startPostponedEnterTransition();
-        }
+    private static final long FAKE_LOADING_DELAY = 100;
 
-        @Override
-        public void onError() {
-            startPostponedEnterTransition();
-        }
-    };
+    private RecyclerView recyclerView;
+    private DetailsAdapter detailsAdapter;
 
-    private ImageView mAlbumImage;
     private int mStartingPosition;
     private int mAlbumPosition;
     private boolean mIsTransitioning;
     private long mBackgroundImageFadeMillis;
+
+    private TeadsAd teadsAd;
 
     public static DetailsListFragment newInstance(int position, int startingPosition) {
         Bundle args = new Bundle();
@@ -73,28 +63,87 @@ public class DetailsListFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_details_recycler_view, container, false);
     }
 
-
     @Override
     public void onViewCreated(View rootView, @Nullable Bundle savedInstanceState) {
 
-        RecyclerView recyclerView = (RecyclerView) rootView;
-
+        recyclerView = (RecyclerView) rootView;
         recyclerView.setLayoutManager(new LinearLayoutManager(rootView.getContext()));
-        recyclerView.setAdapter(new DetailsAdapter());
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        detailsAdapter = new DetailsAdapter(getActivity(), mStartingPosition, mAlbumPosition, mIsTransitioning, mBackgroundImageFadeMillis);
+        RecyclerView.Adapter adapter = new TeadsAdapter(detailsAdapter);
+        recyclerView.setAdapter(adapter);
 
+        // This simulates loading the data from DB asynchronously.
+        // If FAKE_LOADING_DELAY is higher, than the transition runs smoothly.
+        // It's probably not a good idea to swap the RecyclerView adapter just before the transition occurs.
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(loadDataRunnable, FAKE_LOADING_DELAY);
     }
 
-    private void startPostponedEnterTransition() {
-        if (mAlbumPosition == mStartingPosition) {
-            mAlbumImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    mAlbumImage.getViewTreeObserver().removeOnPreDrawListener(this);
-                    getActivity().startPostponedEnterTransition();
-                    return true;
-                }
-            });
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (teadsAd != null) {
+            teadsAd.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (teadsAd != null) {
+            teadsAd.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (teadsAd != null) {
+            teadsAd.clean();
+        }
+    }
+
+    private Runnable loadDataRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            // If we comment this, the transition runs smoothly, independent of how long loading
+            // data from DB takes (simulated by #FAKE_LOADING_DELAY)
+            loadAds();
+
+            detailsAdapter.setFetchingData(false);
+            notifyDataSetChanged();
+        }
+    };
+
+    private void loadAds() {
+
+        if (teadsAd == null) {
+
+            final String publisherId = TeadsFactory.getPublisherId(recyclerView.getContext());
+            if (TextUtils.isEmpty(publisherId)) {
+                return;
+            }
+
+            // Create the Teads Advert, also adds their own RecyclerView.Adapter, when loadAds is called.
+            teadsAd = TeadsFactory.createArticleDetailAdvert(
+                    getActivity(), recyclerView, publisherId);
+        }
+
+        teadsAd.load();
+    }
+
+    private void notifyDataSetChanged() {
+        final RecyclerView.Adapter adapter = recyclerView.getAdapter();
+        try {
+            ((TeadsNotify) adapter).teadsNotifyDataSetChanged();
+        } catch (ClassCastException e) {
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -104,8 +153,9 @@ public class DetailsListFragment extends Fragment {
      */
     @Nullable
     ImageView getAlbumImage() {
-        if (isViewInBounds(getActivity().getWindow().getDecorView(), mAlbumImage)) {
-            return mAlbumImage;
+        final ImageView imageView = detailsAdapter.getAlbumImage();
+        if (isViewInBounds(getActivity().getWindow().getDecorView(), imageView)) {
+            return imageView;
         }
         return null;
     }
@@ -119,101 +169,4 @@ public class DetailsListFragment extends Fragment {
         return view.getLocalVisibleRect(containerBounds);
     }
 
-
-    private class DetailsAdapter extends RecyclerView.Adapter<ListViewHolder> {
-
-        private static final int ITEM_COUNT = 2;
-        private static final int TYPE_HEADER = 0;
-        private static final int TYPE_CONTENT = 1;
-
-
-        @Override
-        public ListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-            if (viewType == TYPE_HEADER) {
-                return new ViewHolderHeader(inflater.inflate(R.layout.list_item_header, parent, false));
-            } else if (viewType == TYPE_CONTENT) {
-                return new ViewHolderContent(inflater.inflate(R.layout.list_item_content, parent, false));
-            }
-
-            return null;
-        }
-
-        @Override
-        public void onBindViewHolder(ListViewHolder holder, int position) {
-            holder.bind();
-        }
-
-        @Override
-        public int getItemCount() {
-            return ITEM_COUNT;
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            return position == 0 ?
-                    TYPE_HEADER :
-                    TYPE_CONTENT;
-        }
-    }
-
-    private class ViewHolderHeader extends ListViewHolder {
-        ImageView backgroundImage;
-
-        ViewHolderHeader(View itemView) {
-            super(itemView);
-            mAlbumImage = (ImageView) itemView.findViewById(R.id.details_album_image);
-            backgroundImage = (ImageView) itemView.findViewById(R.id.details_background_image);
-        }
-
-        void bind() {
-
-            String albumImageUrl = ALBUM_IMAGE_URLS[mAlbumPosition];
-            String backgroundImageUrl = BACKGROUND_IMAGE_URLS[mAlbumPosition];
-
-            RequestCreator albumImageRequest = Picasso.with(getActivity()).load(albumImageUrl);
-            RequestCreator backgroundImageRequest = Picasso.with(getActivity()).load(backgroundImageUrl).fit().centerCrop();
-
-            if (mIsTransitioning) {
-                albumImageRequest.noFade();
-                backgroundImageRequest.noFade();
-                backgroundImage.setAlpha(0f);
-                getActivity().getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
-                    @Override
-                    public void onTransitionEnd(Transition transition) {
-                        backgroundImage.animate().setDuration(mBackgroundImageFadeMillis).alpha(1f);
-                    }
-                });
-            }
-
-            albumImageRequest.into(mAlbumImage, mImageCallback);
-            backgroundImageRequest.into(backgroundImage);
-        }
-    }
-
-    private class ViewHolderContent extends ListViewHolder {
-        TextView albumTitleText;
-
-        ViewHolderContent(View itemView) {
-            super(itemView);
-            View textContainer = itemView.findViewById(R.id.details_text_container);
-            albumTitleText = (TextView) textContainer.findViewById(R.id.details_album_title);
-        }
-
-        void bind() {
-            String albumName = ALBUM_NAMES[mAlbumPosition];
-
-            albumTitleText.setText(albumName);
-            mAlbumImage.setTransitionName(albumName);
-
-        }
-    }
-
-    private abstract class ListViewHolder extends RecyclerView.ViewHolder {
-        ListViewHolder(View itemView) {
-            super(itemView);
-        }
-
-        abstract void bind();
-    }
 }

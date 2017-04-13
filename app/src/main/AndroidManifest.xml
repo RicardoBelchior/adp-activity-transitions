@@ -21,7 +21,9 @@
         <activity
             android:name="com.alexjlockwood.activity.transitions.DetailsActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.Details" />
+            android:theme="@style/AppTheme.Details"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:hardwareAccelerated="true"/>
     </application>
 
 </manifest>

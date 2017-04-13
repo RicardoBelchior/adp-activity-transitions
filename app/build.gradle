@@ -26,7 +26,7 @@ android {
 }
 
 ext {
-    supportLibVersion = '25.2.0'
+    supportLibVersion = '25.3.1'
 }
 
 dependencies {
@@ -35,4 +35,11 @@ dependencies {
     compile "com.android.support:appcompat-v7:${supportLibVersion}"
     compile "com.android.support:support-v13:${supportLibVersion}"
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // Teads SDK video ads
+    compile 'com.google.android.gms:play-services:10.2.1'
+    compile('tv.teads.sdk:androidsdk:0.0.100:fullRelease@aar') {
+        transitive = true;
+    }
+
 }
