@@ -50,7 +50,7 @@ public class DetailsActivity extends Activity {
         }
     };
 
-    private DetailsFragment mCurrentDetailsFragment;
+    private DetailsListFragment mCurrentDetailsFragment;
     private int mCurrentPosition;
     private int mStartingPosition;
     private boolean mIsReturning;
@@ -103,13 +103,13 @@ public class DetailsActivity extends Activity {
 
         @Override
         public Fragment getItem(int position) {
-            return DetailsFragment.newInstance(position, mStartingPosition);
+            return DetailsListFragment.newInstance(position, mStartingPosition);
         }
 
         @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
-            mCurrentDetailsFragment = (DetailsFragment) object;
+            mCurrentDetailsFragment = (DetailsListFragment) object;
         }
 
         @Override
