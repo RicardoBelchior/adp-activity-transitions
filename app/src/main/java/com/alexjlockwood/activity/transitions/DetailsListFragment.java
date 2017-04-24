@@ -74,6 +74,8 @@ public class DetailsListFragment extends Fragment {
         RecyclerView.Adapter adapter = new TeadsAdapter(detailsAdapter);
         recyclerView.setAdapter(adapter);
 
+        createTeadsAd();
+
         // This simulates loading the data from DB asynchronously.
         // If FAKE_LOADING_DELAY is higher, than the transition runs smoothly.
         // It's probably not a good idea to swap the RecyclerView adapter just before the transition occurs.
@@ -123,19 +125,20 @@ public class DetailsListFragment extends Fragment {
 
     private void loadAds() {
 
-        if (teadsAd == null) {
+        if (teadsAd != null) {
+            teadsAd.load();
+        }
+    }
 
-            final String publisherId = TeadsFactory.getPublisherId(recyclerView.getContext());
-            if (TextUtils.isEmpty(publisherId)) {
-                return;
-            }
-
-            // Create the Teads Advert, also adds their own RecyclerView.Adapter, when loadAds is called.
-            teadsAd = TeadsFactory.createArticleDetailAdvert(
-                    getActivity(), recyclerView, publisherId);
+    private void createTeadsAd() {
+        final String publisherId = TeadsFactory.getPublisherId(recyclerView.getContext());
+        if (TextUtils.isEmpty(publisherId)) {
+            return;
         }
 
-        teadsAd.load();
+        // Create the Teads Advert, also adds their own RecyclerView.Adapter, when loadAds is called.
+        teadsAd = TeadsFactory.createArticleDetailAdvert(
+                getActivity(), recyclerView, publisherId);
     }
 
     private void notifyDataSetChanged() {

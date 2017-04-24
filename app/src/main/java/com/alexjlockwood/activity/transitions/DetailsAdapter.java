@@ -78,6 +78,12 @@ class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.ListViewHolder>
 
     @Override
     public int getItemViewType(int position) {
+
+        //Log.i("TAG", String.format("pos: %s, size=%s", position, getItemCount()));
+        if (position < 0 || position >= getItemCount()) {
+            throw new IllegalArgumentException("given position does not exist !");
+        }
+
         if (position == 0) {
             return TYPE_HEADER;
         } else if (position == 1) {
@@ -89,6 +95,7 @@ class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.ListViewHolder>
 
     public void setFetchingData(boolean fetchingData) {
         this.fetchingData = fetchingData;
+        //Log.d("TAG", "fetchingData = " + fetchingData);
     }
 
     private class ViewHolderHeader extends ListViewHolder {
