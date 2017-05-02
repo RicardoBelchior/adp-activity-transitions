@@ -114,12 +114,11 @@ public class DetailsListFragment extends Fragment {
         @Override
         public void run() {
 
-            // If we comment this, the transition runs smoothly, independent of how long loading
-            // data from DB takes (simulated by #FAKE_LOADING_DELAY)
-            loadAds();
 
             detailsAdapter.setFetchingData(false);
             notifyDataSetChanged();
+
+            loadAds();
         }
     };
 
